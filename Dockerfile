@@ -11,4 +11,4 @@ RUN apt-get update && \
     python-dev ffmpeg && \
     rm -rf /var/lib/apt/lists/*
 
-RUN pip install tqdm tensorboard torchmetrics
+RUN pip install tqdm tensorboard torchmetrics torch-fidelity

@@ -1,3 +1,3 @@
 cd default-project
 python download.py
-python train.py --name test
+python train.py --name test --resume

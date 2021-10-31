@@ -66,19 +66,22 @@ def download(args):
     Downloads dataset and baseline models.
     """
 
-    download_data(
-        args.data_dir, url="http://vision.stanford.edu/aditya86/ImageNetDogs/images.tar"
-    )
+    if not os.path.exists(args.data_dir):
+        download_data(
+            args.data_dir, url="http://vision.stanford.edu/aditya86/ImageNetDogs/images.tar"
+        )
+        print(f"{args.data_dir} exists...skip downloading"}
+    if not os.path.exists(args.out_dir):
+        download_data(
+            args.out_dir,
+            url="https://github.com/deepgenerativemodels/default-project/releases/download/f.2021.v2/baselines-150k.tar",
+        )
 
-    download_data(
-        args.out_dir,
-        url="https://github.com/deepgenerativemodels/default-project/releases/download/f.2021.v2/baselines-150k.tar",
-    )
-
-    download_data(
-        args.out_dir,
-        url="https://github.com/deepgenerativemodels/default-project/releases/download/f.2021.v2/baselines-295k.tar",
-    )
+        download_data(
+            args.out_dir,
+            url="https://github.com/deepgenerativemodels/default-project/releases/download/f.2021.v2/baselines-295k.tar",
+        )
+        print(f"{args.out_dir} exists...skip downloading"}
 
 
 if __name__ == "__main__":
