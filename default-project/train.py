@@ -159,7 +159,7 @@ def train(args):
     )
 
     # Configure dataloaders
-    train_dataloader, eval_dataloader = util.get_dataloaders(
+    train_dataloader, eval_dataloader, _, _ = util.get_dataloaders(
         args.data_dir, args.im_size, args.batch_size, eval_size, num_workers
     )
 

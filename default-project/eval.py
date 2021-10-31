@@ -81,7 +81,7 @@ def eval(args):
     net_d.load_state_dict(state_dict["net_d"])
 
     # Configures eval dataloader
-    _, eval_dataloader = util.get_dataloaders(
+    _, eval_dataloader, _, _ = util.get_dataloaders(
         args.data_dir, args.im_size, args.batch_size, eval_size, num_workers
     )
 
