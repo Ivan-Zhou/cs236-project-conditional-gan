@@ -81,7 +81,7 @@ def download(args):
             args.out_dir,
             url="https://github.com/deepgenerativemodels/default-project/releases/download/f.2021.v2/baselines-295k.tar",
         )
-        print(f"{args.out_dir} exists...skip downloading"}
+        print(f"{args.out_dir} exists...skip downloading")
 
 
 if __name__ == "__main__":
