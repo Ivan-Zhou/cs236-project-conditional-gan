@@ -7,7 +7,7 @@ import torch.optim as optim
 
 import util
 from model import *
-from trainer import Trainer
+from trainer import Trainer, CGANTrainer
 
 
 def parse_args():
@@ -98,6 +98,18 @@ def parse_args():
         default=("cuda:0" if torch.cuda.is_available() else "cpu"),
         help="Device to train on.",
     )
+    parser.add_argument(
+        "--model",
+        type=str,
+        default="default",
+        help="default|cgan",
+    )
+    parser.add_argument(
+        "--num_classes",
+        type=str,
+        default=120,
+        help="num of labels"
+    )
 
     return parser.parse_args()
 
@@ -137,7 +149,10 @@ def train(args):
     nz, lr, betas, eval_size, num_workers = (128, 2e-4, (0.0, 0.9), 1000, 4)
 
     # Configure models
-    if args.im_size == 32:
+    if args.model == "cgan":
+        net_g = CGANGenerator(nz, (3, args.im_size, args.im_size), num_classes = args.num_classes)
+        net_d = CGANDiscriminator((3, args.im_size, args.im_size), num_classes = args.num_classes)
+    elif args.im_size == 32:
         net_g = Generator32()
         net_d = Discriminator32()
     elif args.im_size == 64:
@@ -163,21 +178,38 @@ def train(args):
         args.data_dir, args.im_size, args.batch_size, eval_size, num_workers
     )
 
+    if args.model == "cgan":
+        trainer = CGANTrainer(
+            net_g,
+            net_d,
+            opt_g,
+            opt_d,
+            sch_g,
+            sch_d,
+            train_dataloader,
+            eval_dataloader,
+            nz,
+            args.num_classes,
+            log_dir,
+            ckpt_dir,
+            torch.device(args.device),
+        )
     # Configure trainer
-    trainer = Trainer(
-        net_g,
-        net_d,
-        opt_g,
-        opt_d,
-        sch_g,
-        sch_d,
-        train_dataloader,
-        eval_dataloader,
-        nz,
-        log_dir,
-        ckpt_dir,
-        torch.device(args.device),
-    )
+    else:
+        trainer = Trainer(
+            net_g,
+            net_d,
+            opt_g,
+            opt_d,
+            sch_g,
+            sch_d,
+            train_dataloader,
+            eval_dataloader,
+            nz,
+            log_dir,
+            ckpt_dir,
+            torch.device(args.device),
+        )
 
     # Train model
     trainer.train(args.max_steps, args.repeat_d, args.eval_every, args.ckpt_every)

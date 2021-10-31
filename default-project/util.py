@@ -8,10 +8,10 @@ def get_dataloaders(data_dir, imsize, batch_size, eval_size, num_workers=1):
     Creates a dataloader from a directory containing image data.
     """
 
-    def target_to_oh(target):
-        NUM_CLASS = 120  # hard code here....
-        one_hot = torch.eye(NUM_CLASS)[target]
-        return one_hot
+    # def target_to_oh(target):
+    #     num_classes=120 #TODO(yuanzhe): no hardcode...
+    #     one_hot = torch.eye(num_classes)[target]
+    #     return one_hot
 
     dataset = datasets.ImageFolder(
         root=data_dir,
@@ -23,7 +23,7 @@ def get_dataloaders(data_dir, imsize, batch_size, eval_size, num_workers=1):
                 transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
             ]
         ),
-        target_transform=target_to_oh,
+        #target_transform=target_to_oh,
     )
     idx2class = {v: k for k, v in dataset.class_to_idx.items()}
 

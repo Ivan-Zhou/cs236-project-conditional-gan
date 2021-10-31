@@ -1,5 +1,6 @@
 import os
 
+import numpy as np
 from tqdm import tqdm
 import torch
 import torch.nn as nn
@@ -9,6 +10,7 @@ import torchvision.transforms as transforms
 import torchvision.datasets as datasets
 import torchvision.utils as vutils
 from torchmetrics import IS, FID, KID
+from torch.autograd import Variable
 
 
 def prepare_data_for_inception(x, device):
@@ -24,7 +26,20 @@ def prepare_data_for_inception(x, device):
     return x.to(device).to(torch.uint8)
 
 
-def prepare_data_for_gan(x, nz, device):
+def prepare_data_for_gan_v2(x, nz, nc, device):
+    r"""
+    Helper function to prepare inputs for model.
+    """
+    batch_size = x.shape[0]
+    #LongTensor = torch.cuda.LongTensor if cuda else torch.LongTensor
+    gen_labels = Variable(torch.LongTensor(np.random.randint(0, nc, batch_size)))
+    return (
+        x.to(device),
+        torch.randn((x.size(0), nz)).to(device),
+        gen_labels.to(device)
+    )
+
+def prepare_data_for_gan(x, nz, nc, device):
     r"""
     Helper function to prepare inputs for model.
     """
@@ -32,6 +47,7 @@ def prepare_data_for_gan(x, nz, device):
     return (
         x.to(device),
         torch.randn((x.size(0), nz)).to(device),
+        
     )
 
 
@@ -173,7 +189,8 @@ def evaluate(net_g, net_d, dataloader, nz, device, samples_z=None):
         if samples_z is not None:
             samples = net_g(samples_z)
             samples = F.interpolate(samples, 256).cpu()
-            samples = vutils.make_grid(samples, nrow=6, padding=4, normalize=True)
+            samples = vutils.make_grid(
+                samples, nrow=6, padding=4, normalize=True)
 
     return metrics if samples_z is None else (metrics, samples)
 
@@ -256,7 +273,8 @@ class Trainer:
         Finds the last checkpoint in ckpt_dir and load states.
         """
 
-        ckpt_paths = [f for f in os.listdir(self.ckpt_dir) if f.endswith(".pth")]
+        ckpt_paths = [f for f in os.listdir(
+            self.ckpt_dir) if f.endswith(".pth")]
         if ckpt_paths:  # Train from scratch if no checkpoints were found
             ckpt_path = sorted(ckpt_paths, key=lambda f: int(f[:-4]))[-1]
             ckpt_path = os.path.join(self.ckpt_dir, ckpt_path)
@@ -352,6 +370,142 @@ class Trainer:
                             samples_z=self.fixed_z,
                         )
                     )
+
+                if self.step != 0 and self.step % ckpt_every == 0:
+                    self._save_checkpoint()
+
+                self.step += 1
+                if self.step > max_steps:
+                    return
+
+
+class CGANTrainer(Trainer):
+    def __init__(
+        self,
+        net_g,
+        net_d,
+        opt_g,
+        opt_d,
+        sch_g,
+        sch_d,
+        train_dataloader,
+        eval_dataloader,
+        nz,
+        num_classes,
+        log_dir,
+        ckpt_dir,
+        device,
+    ):
+        super().__init__(
+            net_g,
+            net_d,
+            opt_g,
+            opt_d,
+            sch_g,
+            sch_d,
+            train_dataloader,
+            eval_dataloader,
+            nz,
+            log_dir,
+            ckpt_dir,
+            device,
+        )
+        self.num_classes = num_classes
+
+    def compute_loss_d(self, net_g, net_d, reals, z, labels, gen_labels, loss_func_d):
+        r"""
+        General implementation to compute discriminator loss.
+        """
+        real_preds = net_d(reals, labels).view(-1)
+        fakes = net_g(z, gen_labels).detach()
+        fake_preds = net_d(fakes, gen_labels).view(-1)
+        loss_d = loss_func_d(real_preds, fake_preds)
+        return loss_d, fakes, real_preds, fake_preds
+
+    def compute_loss_g(self, net_g, net_d, z, labels, gen_labels, loss_func_g):
+        r"""
+        General implementation to compute generator loss.
+        """
+
+        fakes = net_g(z, gen_labels)
+        fake_preds = net_d(fakes, gen_labels).view(-1)
+        loss_g = loss_func_g(fake_preds) #should predict all 0s
+
+        return loss_g, fakes, fake_preds
+
+    def _train_step_g(self, z, labels, gen_labels):
+        return train_step(
+            self.net_g,
+            self.opt_g,
+            self.sch_g,
+            lambda: self.compute_loss_g(
+                self.net_g,
+                self.net_d,
+                z,
+                labels,
+                gen_labels,
+                hinge_loss_g,
+            )[0],
+        )
+
+    def _train_step_d(self, reals, z, labels, gen_labels):
+            r"""
+            Performs a discriminator training step.
+            """
+
+            return train_step(
+                self.net_d,
+                self.opt_d,
+                self.sch_d,
+                lambda: self.compute_loss_d(
+                    self.net_g,
+                    self.net_d,
+                    reals,
+                    z,
+                    labels,
+                    gen_labels,
+                    hinge_loss_d,
+                )[0],
+            )
+
+    def train(self, max_steps, repeat_d, eval_every, ckpt_every):
+        r"""
+        Performs GAN training, checkpointing and logging.
+        Attributes:
+            max_steps (int): Number of steps before stopping.
+            repeat_d (int): Number of discriminator updates before a generator update.
+            eval_every (int): Number of steps before logging to Tensorboard.
+            ckpt_every (int): Number of steps before checkpointing models.
+        """
+
+        self._load_checkpoint()
+
+        while True:
+            pbar = tqdm(self.train_dataloader)
+            for data, labels in pbar:
+
+                labels = labels.to(self.device)
+                # Training step
+                reals, z, gen_labels = prepare_data_for_gan_v2(data, self.nz, self.num_classes, self.device)
+                loss_d = self._train_step_d(reals, z, labels, gen_labels)
+                if self.step % repeat_d == 0:
+                    loss_g = self._train_step_g(z, labels, gen_labels)
+
+                pbar.set_description(
+                    f"L(G):{loss_g.item():.2f}|L(D):{loss_d.item():.2f}|{self.step}/{max_steps}"
+                )
+
+                # if self.step != 0 and self.step % eval_every == 0:
+                #     self._log(
+                #         *evaluate(
+                #             self.net_g,
+                #             self.net_d,
+                #             self.eval_dataloader,
+                #             self.nz,
+                #             self.device,
+                #             samples_z=self.fixed_z,
+                #         )
+                #     )
 
                 if self.step != 0 and self.step % ckpt_every == 0:
                     self._save_checkpoint()
