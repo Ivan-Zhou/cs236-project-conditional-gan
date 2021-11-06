@@ -10,4 +10,7 @@ bash run.sh # start training
 ```
 # run evaluation with the given checkpoint path
 ./eval.sh PATH_TO_CHECKPOINT
+
+# For example
+./run_eval.sh default-project/out/test/ckpt/5000.pth
 ```
