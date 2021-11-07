@@ -101,7 +101,7 @@ def eval(args):
     FloatTensor = torch.cuda.FloatTensor
     samples_z = Variable(FloatTensor(np.random.normal(0, 1, (36, 128))))
     samples_save_path = os.path.join(args.out_dir, "samples.png")
-    metrics = evaluate(net_g, net_d, eval_dataloader, nz, args.device, samples_z, samples_save_path)
+    metrics, _ = evaluate(net_g, net_d, eval_dataloader, nz, args.device, samples_z, samples_save_path)
     pprint.pprint(metrics)
 
 

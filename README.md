@@ -6,6 +6,12 @@ bash launch.sh # launch docker
 bash run.sh # start training
 ```
 
+### To use MNIST dataset
+
+```
+./run.sh mnist
+```
+
 ## Evaluation
 ```
 # run evaluation with the given checkpoint path

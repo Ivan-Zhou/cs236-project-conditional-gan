@@ -24,6 +24,12 @@ def parse_args():
         help="Path to dataset directory.",
     )
     parser.add_argument(
+        "--dataset",
+        type=str,
+        default="local",
+        help="Use local dataset or Pytorch datasets.",
+    )
+    parser.add_argument(
         "--out_dir",
         type=str,
         default=os.path.join(root_dir, "out"),
@@ -160,7 +166,7 @@ def train(args):
 
     # Configure dataloaders
     train_dataloader, eval_dataloader, _, _ = util.get_dataloaders(
-        args.data_dir, args.im_size, args.batch_size, eval_size, num_workers
+        args.data_dir, args.im_size, args.batch_size, eval_size, num_workers, dataset=args.dataset
     )
 
     # Configure trainer
