@@ -4,7 +4,7 @@ import torchvision.datasets as datasets
 from torch.utils.data import DataLoader
 
 
-def get_dataloaders(data_dir, imsize, batch_size, eval_size, num_workers=1):
+def get_dataloaders_from_local(data_dir, imsize, batch_size, eval_size, num_workers=1):
     r"""
     Creates a dataloader from a directory containing image data.
     """
@@ -48,7 +48,7 @@ def get_dataloaders(data_dir, imsize, batch_size, eval_size, num_workers=1):
 
 def get_dataloaders(data_dir, imsize, batch_size, eval_size, num_workers=1, dataset="local"):
     if dataset == "local":
-        return get_dataloaders_from_local(data_dir, imsize, batch_size, eval_size, num_workers=1)
+        return get_dataloaders_from_local(data_dir, imsize, batch_size, eval_size, num_workers=num_workers)
     else:
         assert dataset in ["mnist", "fashion-mnist", "cifar10", "svhn", "stl10"], print(f"Unsupported dataset {dataset}")
         train_dataloader = dataloader(dataset, imsize, batch_size, split='train')

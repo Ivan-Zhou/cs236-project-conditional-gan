@@ -192,16 +192,10 @@ def evaluate(net_g, net_d, dataloader, nz, device, samples_z=None, samples_save_
         if samples_z is not None:
             samples = net_g(samples_z)
             samples = F.interpolate(samples, 256).cpu()
-<<<<<<< HEAD
-            samples = vutils.make_grid(
-                samples, nrow=6, padding=4, normalize=True)
-
-=======
             if samples_save_path:
                 vutils.save_image(samples, samples_save_path, nrow=6, padding=4, normalize=True)
             else:
                 samples = vutils.make_grid(samples, nrow=6, padding=4, normalize=True)
->>>>>>> origin/master
     return metrics if samples_z is None else (metrics, samples)
 
 class Trainer:
