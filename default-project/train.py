@@ -112,7 +112,7 @@ def parse_args():
     )
     parser.add_argument(
         "--num_classes",
-        type=str,
+        type=int,
         default=120,
         help="num of labels"
     )

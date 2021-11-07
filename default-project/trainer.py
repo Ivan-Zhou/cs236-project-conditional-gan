@@ -400,7 +400,7 @@ def compute_loss_g_v2(net_g, net_d, z, labels, gen_labels, loss_func_g):
 
     fakes = net_g(z, gen_labels)
     fake_preds = net_d(fakes, gen_labels).view(-1)
-    loss_g = loss_func_g(fake_preds)  # should predict all 0s
+    loss_g = loss_func_g(fake_preds)  # should predict all 1s to full the net_d
 
     return loss_g, fakes, fake_preds
 
@@ -476,6 +476,7 @@ def evaluate_v2(net_g, net_d, dataloader, nz, num_classes, device, samples_z=Non
             kid.update(reals, real=True)
             kid.update(fakes, real=False)
 
+        
         # Process metrics
         metrics = {
             "L(G)": torch.stack(loss_gs).mean().item(),
@@ -488,13 +489,13 @@ def evaluate_v2(net_g, net_d, dataloader, nz, num_classes, device, samples_z=Non
         }
 
         # Create samples
+        
         if samples_z is not None:
-            gen_labels = Variable(torch.LongTensor(np.arange(samples_z.shape[0]))).to(device)
+            gen_labels = Variable(torch.LongTensor([label % num_classes for label in np.arange(samples_z.shape[0])])).to(device)
             samples = net_g(samples_z, gen_labels)
             samples = F.interpolate(samples, 256).cpu()
             samples = vutils.make_grid(
                 samples, nrow=6, padding=4, normalize=True)
-
     return metrics if samples_z is None else (metrics, samples)
 
 
@@ -594,6 +595,7 @@ class CGANTrainer(Trainer):
                     f"L(G):{loss_g.item():.2f}|L(D):{loss_d.item():.2f}|{self.step}/{max_steps}"
                 )
 
+                
                 if self.step != 0 and self.step % eval_every == 0:
                     self._log(
                         *evaluate_v2(

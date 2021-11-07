@@ -23,10 +23,12 @@ nz, eval_size, num_workers = (
 data_dir = "./data/Images/"
 im_size = 32
 batch_size = 64
-num_classes = 120
-ckpt_path = "./out/debug_cgan_2/ckpt/270000.pth"
-net_g = CGANGenerator(nz, (3, im_size, im_size), num_classes)
-net_d = CGANDiscriminator((3, im_size, im_size), num_classes)
+#num_classes = 120
+num_classes = 10
+ckpt_path = "./out/debug_cgan_mnist/ckpt/15000.pth"
+num_channels=3
+net_g = CGANGenerator(nz, (num_channels, im_size, im_size), num_classes)
+net_d = CGANDiscriminator((num_channels, im_size, im_size), num_classes)
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
@@ -37,7 +39,7 @@ net_d.load_state_dict(state_dict["net_d"])
 
     # Configures eval dataloader
 _, eval_dataloader, _, _ = util.get_dataloaders(
-data_dir, im_size, batch_size, eval_size, num_workers
+data_dir, im_size, batch_size, eval_size, num_workers, dataset="mnist"
 )
 
 # Evaluate models
@@ -51,15 +53,13 @@ pprint.pprint(metrics)
 samples_z = torch.randn((36, nz), device=device)
 #gen_labels = Variable(torch.LongTensor(np.arange(samples_z.shape[0]))).to(device)
 gen_labels = Variable(torch.LongTensor(np.ones(samples_z.shape[0]))).to(device)
-gen_labels = Variable(torch.LongTensor(np.ones(samples_z.shape[0]))*10).to(device)
+gen_labels = Variable(torch.LongTensor(np.ones(samples_z.shape[0]))*6).to(device)
+
+gen_labels
 
 samples = net_g(samples_z, gen_labels)
 samples = F.interpolate(samples, 256).cpu()
-samples = vutils.make_grid(samples, nrow=6, padding=4, normalize=True)
-
-samples.shape
-
-samples
+samples = vutils.make_grid(samples, nrow=6, padding=5, normalize=True)
 
 samples.permute(1,2,0).shape
 
@@ -68,7 +68,5 @@ samples.permute(1,2,0).detach().cpu().numpy().shape
 plt.rcParams['figure.figsize'] = [40, 20]
 
 plt.imshow(samples.permute(1,2,0).detach().cpu().numpy())
-
-gen_labels
 
 

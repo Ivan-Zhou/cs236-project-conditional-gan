@@ -19,3 +19,4 @@ python train.py --name debug_cgan_2 --model cgan --resume --data_dir ./data/Imag
 # eval cgan
 python eval_cgan.py --ckpt_path out/debug_cgan_2/ckpt/150000.pth --im_size 32
 
+python train.py --name debug_cgan_mnist --model cgan --resume --dataset mnist --max_steps 9999999 --num_classes 10
