@@ -1,8 +1,10 @@
+import numpy as np
 import os
 import pprint
 import argparse
 
 import torch
+from torch.autograd import Variable
 
 import util
 from model import *
@@ -21,6 +23,15 @@ def parse_args():
         type=str,
         default=os.path.join(root_dir, "data"),
         help="Path to dataset directory.",
+    )
+    parser.add_argument(
+        "--out_dir",
+        type=str,
+        default=os.path.join(root_dir, "out"),
+        help=(
+            "Path to output directory. "
+            "A new one will be created if the directory does not exist."
+        ),
     )
     parser.add_argument(
         "--ckpt_path",
@@ -85,8 +96,12 @@ def eval(args):
         args.data_dir, args.im_size, args.batch_size, eval_size, num_workers
     )
 
-    # Evaluate models
-    metrics = evaluate(net_g, net_d, eval_dataloader, nz, args.device)
+    # Evaluate models with metrics and samples
+    os.makedirs(args.out_dir, exist_ok=True)
+    FloatTensor = torch.cuda.FloatTensor
+    samples_z = Variable(FloatTensor(np.random.normal(0, 1, (36, 128))))
+    samples_save_path = os.path.join(args.out_dir, "samples.png")
+    metrics, _ = evaluate(net_g, net_d, eval_dataloader, nz, args.device, samples_z, samples_save_path)
     pprint.pprint(metrics)
 
 
