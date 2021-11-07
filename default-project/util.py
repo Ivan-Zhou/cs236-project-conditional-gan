@@ -4,15 +4,15 @@ import torchvision.datasets as datasets
 from torch.utils.data import DataLoader
 
 
-def get_dataloaders(data_dir, imsize, batch_size, eval_size, num_workers=1):
+def get_dataloaders_from_local(data_dir, imsize, batch_size, eval_size, num_workers=1):
     r"""
     Creates a dataloader from a directory containing image data.
     """
 
-    def target_to_oh(target):
-        NUM_CLASS = 120  # hard code here....
-        one_hot = torch.eye(NUM_CLASS)[target]
-        return one_hot
+    # def target_to_oh(target):
+    #     num_classes=120 #TODO(yuanzhe): no hardcode...
+    #     one_hot = torch.eye(num_classes)[target]
+    #     return one_hot
 
     dataset = datasets.ImageFolder(
         root=data_dir,
@@ -24,7 +24,7 @@ def get_dataloaders(data_dir, imsize, batch_size, eval_size, num_workers=1):
                 transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
             ]
         ),
-        target_transform=target_to_oh,
+        #target_transform=target_to_oh,
     )
     idx2class = {v: k for k, v in dataset.class_to_idx.items()}
 
@@ -48,7 +48,7 @@ def get_dataloaders(data_dir, imsize, batch_size, eval_size, num_workers=1):
 
 def get_dataloaders(data_dir, imsize, batch_size, eval_size, num_workers=1, dataset="local"):
     if dataset == "local":
-        return get_dataloaders_from_local(data_dir, imsize, batch_size, eval_size, num_workers=1)
+        return get_dataloaders_from_local(data_dir, imsize, batch_size, eval_size, num_workers=num_workers)
     else:
         assert dataset in ["mnist", "fashion-mnist", "cifar10", "svhn", "stl10"], print(f"Unsupported dataset {dataset}")
         train_dataloader = dataloader(dataset, imsize, batch_size, split='train')
