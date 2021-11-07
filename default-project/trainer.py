@@ -99,7 +99,7 @@ def train_step(net, opt, sch, compute_loss):
     return loss
 
 
-def evaluate(net_g, net_d, dataloader, nz, device, samples_z=None):
+def evaluate(net_g, net_d, dataloader, nz, device, samples_z=None, samples_save_path=None):
     r"""
     Evaluates model and logs metrics.
     Attributes:
@@ -109,6 +109,7 @@ def evaluate(net_g, net_d, dataloader, nz, device, samples_z=None):
         nz (int): Generator input / noise dimension.
         device (Device): Torch device to perform evaluation on.
         samples_z (Tensor): Noise tensor to generate samples.
+        samples_save_path (str): The output path to save samples
     """
 
     net_g.to(device).eval()
@@ -173,10 +174,11 @@ def evaluate(net_g, net_d, dataloader, nz, device, samples_z=None):
         if samples_z is not None:
             samples = net_g(samples_z)
             samples = F.interpolate(samples, 256).cpu()
-            samples = vutils.make_grid(samples, nrow=6, padding=4, normalize=True)
-
+            if samples_save_path:
+                vutils.save_image(samples, samples_save_path, nrow=6, padding=4, normalize=True)
+            else:
+                samples = vutils.make_grid(samples, nrow=6, padding=4, normalize=True)
     return metrics if samples_z is None else (metrics, samples)
-
 
 class Trainer:
     r"""
