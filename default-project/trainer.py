@@ -389,7 +389,7 @@ def compute_loss_d_v2(net_g, net_d, reals, z, labels, gen_labels, loss_func_d):
     real_preds = net_d(reals, labels).view(-1)
     fakes = net_g(z, gen_labels).detach()
     fake_preds = net_d(fakes, gen_labels).view(-1)
-    loss_d = loss_func_d(real_preds, fake_preds)
+    loss_d = loss_func_d(real_preds, fake_preds)  # net_d(real) = 1 and net_d(fake) = 0 to reach the mean loss
     return loss_d, fakes, real_preds, fake_preds
 
 
@@ -400,7 +400,7 @@ def compute_loss_g_v2(net_g, net_d, z, labels, gen_labels, loss_func_g):
 
     fakes = net_g(z, gen_labels)
     fake_preds = net_d(fakes, gen_labels).view(-1)
-    loss_g = loss_func_g(fake_preds)  # should predict all 1s to full the net_d
+    loss_g = loss_func_g(fake_preds)  # should predict all 1s to get the min loss value and fool the net_d
 
     return loss_g, fakes, fake_preds
 
