@@ -197,6 +197,7 @@ class CGANDiscriminator(nn.Module):
 
     def forward(self, img, labels):
         # Concatenate label embedding and image to produce input
+        # TODO img should only have 1 channel for mnist, now it's 3
         d_in = torch.cat((img.view(img.size(0), -1), self.label_embedding(labels)), -1)
         validity = self.model(d_in)
         return validity
