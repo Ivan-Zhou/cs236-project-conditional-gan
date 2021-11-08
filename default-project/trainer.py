@@ -405,7 +405,7 @@ def compute_loss_g_v2(net_g, net_d, z, labels, gen_labels, loss_func_g):
     return loss_g, fakes, fake_preds
 
 
-def evaluate_v2(net_g, net_d, dataloader, nz, num_classes, device, samples_z=None):
+def evaluate_v2(net_g, net_d, dataloader, nz, num_classes, device, samples_z=None, samples_save_path=None):
     r"""
     Evaluates model and logs metrics.
     Attributes:
@@ -494,8 +494,10 @@ def evaluate_v2(net_g, net_d, dataloader, nz, num_classes, device, samples_z=Non
             gen_labels = Variable(torch.LongTensor([label % num_classes for label in np.arange(samples_z.shape[0])])).to(device)
             samples = net_g(samples_z, gen_labels)
             samples = F.interpolate(samples, 256).cpu()
-            samples = vutils.make_grid(
-                samples, nrow=6, padding=4, normalize=True)
+            if samples_save_path:
+                vutils.save_image(samples, samples_save_path, nrow=6, padding=4, normalize=True)
+            else:
+                samples = vutils.make_grid(samples, nrow=6, padding=4, normalize=True)
     return metrics if samples_z is None else (metrics, samples)
 
 

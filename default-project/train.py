@@ -26,8 +26,8 @@ def parse_args():
     parser.add_argument(
         "--dataset",
         type=str,
-        default="local",
-        help="Use local dataset or Pytorch datasets.",
+        default="mnist",
+        help="mnist|stanford_dog",
     )
     parser.add_argument(
         "--out_dir",
@@ -110,13 +110,6 @@ def parse_args():
         default="default",
         help="default|cgan",
     )
-    parser.add_argument(
-        "--num_classes",
-        type=int,
-        default=120,
-        help="num of labels"
-    )
-
     return parser.parse_args()
 
 
@@ -124,7 +117,6 @@ def train(args):
     r"""
     Configures and trains model.
     """
-
     # Print command line arguments and architectures
     pprint.pprint(vars(args))
 
@@ -132,6 +124,8 @@ def train(args):
     if not os.path.exists(args.data_dir):
         raise FileNotFoundError(f"Data directory 'args.data_dir' is not found.")
 
+    num_classes = util.get_num_classes_by_dataset(args.dataset)
+    
     # Check existing experiment
     exp_dir = os.path.join(args.out_dir, args.name)
     if os.path.exists(exp_dir) and not args.resume:
@@ -156,8 +150,8 @@ def train(args):
 
     # Configure models
     if args.model == "cgan":
-        net_g = CGANGenerator(nz, (3, args.im_size, args.im_size), num_classes = args.num_classes)
-        net_d = CGANDiscriminator((3, args.im_size, args.im_size), num_classes = args.num_classes)
+        net_g = CGANGenerator(nz, (3, args.im_size, args.im_size), num_classes = num_classes)
+        net_d = CGANDiscriminator((3, args.im_size, args.im_size), num_classes = num_classes)
     elif args.im_size == 32:
         net_g = Generator32()
         net_d = Discriminator32()
@@ -195,7 +189,7 @@ def train(args):
             train_dataloader,
             eval_dataloader,
             nz,
-            args.num_classes,
+            num_classes,
             log_dir,
             ckpt_dir,
             torch.device(args.device),
