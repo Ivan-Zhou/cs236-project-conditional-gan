@@ -1,3 +1,5 @@
+import glob
+import os
 import torch
 import torchvision.transforms as transforms
 import torchvision.datasets as datasets
@@ -46,8 +48,9 @@ def get_dataloaders_from_local(data_dir, imsize, batch_size, eval_size, num_work
     return train_dataloader, eval_dataloader, dataset.class_to_idx, idx2class
 
 
-def get_dataloaders(data_dir, imsize, batch_size, eval_size, num_workers=1, dataset="local"):
-    if dataset == "local":
+def get_dataloaders(data_dir, imsize, batch_size, eval_size, num_workers=1, dataset="mnist"):
+    if dataset in ["stanford_dog"]:  # dataset from local directory
+        assert os.path.exists(data_dir), f"The directory {data_dir} does not exist!"
         return get_dataloaders_from_local(data_dir, imsize, batch_size, eval_size, num_workers=num_workers)
     else:
         assert dataset in ["mnist", "fashion-mnist", "cifar10", "svhn", "stl10"], print(f"Unsupported dataset {dataset}")
@@ -88,3 +91,22 @@ def dataloader(dataset, imsize, batch_size, split='train'):
             datasets.STL10('data/stl10', split=split, download=True, transform=transform),
             batch_size=batch_size, shuffle=True)
     return data_loader
+
+
+def get_num_classes_by_dataset(dataset):
+    if dataset == "stanford_dog":
+        return 120
+    elif dataset == "mnist":
+        return 10
+    else:
+        raise ValueError(f"No num_classes defined for the dataset {dataset}")
+
+
+def get_eval_checkpoint(ckpt_path, exp_dir):
+    if ckpt_path != "" and os.path.exists(ckpt_path):
+        return ckpt_path
+    if exp_dir != "" and os.path.exists(exp_dir):
+        ckpt_list = glob.glob(os.path.join(exp_dir, "ckpt", "*.pth"))
+        assert len(ckpt_list) > 0, f"No checkpoint can be found at {exp_dir}!"
+        return max(ckpt_list, key=os.path.getctime)
+    raise FileNotFoundError(f"No checkpoint can be found at path {ckpt_path} or directory {exp_dir}!")

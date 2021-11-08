@@ -1,2 +1,4 @@
 default-project/data/*
 default-project/out/*
+data/*
+*.pyc
