@@ -17,6 +17,10 @@ For example:
 
 # Train CGAN on Stanford Dog
 ./run.sh stanford_dog cgan
+./run.sh stanford_dogs_top_10 cgan
+
+# Train CGAN on Fashion-MNIST
+./run.sh fashion-mnist cgan
 ```
 
 ## Evaluation

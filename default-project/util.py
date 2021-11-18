@@ -98,6 +98,8 @@ def get_num_classes_by_dataset(dataset):
         return 120
     elif dataset == "mnist":
         return 10
+    elif dataset == "fashion-mnist":
+        return 10
     elif dataset == "stanford_dogs_top_10":
         return 10
     else:
