@@ -80,16 +80,17 @@ def hinge_loss_d(real_preds, fake_preds):
 def mse_loss_g(fake_preds):
     batch_size = fake_preds.shape[0]
     MSE_loss = nn.MSELoss()
-    y_real_ = torch.ones(batch_size, 1)
+    y_real_ = torch.ones(batch_size, 1, device="cuda:0")
     G_loss = MSE_loss(fake_preds, y_real_)
     return G_loss
 
 def mse_loss_d(real_preds, fake_preds):
     batch_size = fake_preds.shape[0]
     MSE_loss = nn.MSELoss()
-    y_real_, y_fake_ = torch.ones(batch_size, 1), torch.zeros(batch_size, 1)
-    D_real_loss = MSE_loss(D_real, y_real_)
-    D_fake_loss = MSE_loss(D_fake, y_fake_)
+    y_real_ = torch.ones(batch_size, 1, device="cuda:0")
+    y_fake_ = torch.zeros(batch_size, 1, device="cuda:0")
+    D_real_loss = MSE_loss(real_preds, y_real_)
+    D_fake_loss = MSE_loss(fake_preds, y_fake_)
     D_loss = D_real_loss + D_fake_loss
     return D_loss
 
