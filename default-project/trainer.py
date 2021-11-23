@@ -61,7 +61,7 @@ def compute_prob(logits):
     return torch.sigmoid(logits).mean()
 
 
-def hinge_loss_g(fake_preds):
+def hinge_loss_g(fake_preds, *args):
     r"""
     Computes generator hinge loss.
     """
@@ -69,7 +69,7 @@ def hinge_loss_g(fake_preds):
     return -fake_preds.mean()
 
 
-def hinge_loss_d(real_preds, fake_preds):
+def hinge_loss_d(real_preds, fake_preds, *args):
     r"""
     Computes discriminator hinge loss.
     """
@@ -77,18 +77,18 @@ def hinge_loss_d(real_preds, fake_preds):
     return F.relu(1.0 - real_preds).mean() + F.relu(1.0 + fake_preds).mean()
 
 
-def mse_loss_g(fake_preds):
+def mse_loss_g(fake_preds, device="cuda:0"):
     batch_size = fake_preds.shape[0]
     MSE_loss = nn.MSELoss()
-    y_real_ = torch.ones(batch_size, 1, device="cuda:0")
+    y_real_ = torch.ones(batch_size, 1, device=device)
     G_loss = MSE_loss(fake_preds, y_real_)
     return G_loss
 
-def mse_loss_d(real_preds, fake_preds):
+def mse_loss_d(real_preds, fake_preds, device="cuda:0"):
     batch_size = fake_preds.shape[0]
     MSE_loss = nn.MSELoss()
-    y_real_ = torch.ones(batch_size, 1, device="cuda:0")
-    y_fake_ = torch.zeros(batch_size, 1, device="cuda:0")
+    y_real_ = torch.ones(batch_size, 1, device=device)
+    y_fake_ = torch.zeros(batch_size, 1, device=device)
     D_real_loss = MSE_loss(real_preds, y_real_)
     D_fake_loss = MSE_loss(fake_preds, y_fake_)
     D_loss = D_real_loss + D_fake_loss
@@ -404,25 +404,25 @@ class Trainer:
                     return
 
 
-def compute_loss_d_v2(net_g, net_d, reals, z, labels, gen_labels, loss_func_d):
+def compute_loss_d_v2(net_g, net_d, reals, z, labels, gen_labels, loss_func_d, device="cuda:0"):
     r"""
     General implementation to compute discriminator loss.
     """
     real_preds = net_d(reals, labels).view(-1)
     fakes = net_g(z, gen_labels).detach()
     fake_preds = net_d(fakes, gen_labels).view(-1)
-    loss_d = loss_func_d(real_preds, fake_preds)  # net_d(real) = 1 and net_d(fake) = 0 to reach the mean loss
+    loss_d = loss_func_d(real_preds, fake_preds, device)  # net_d(real) = 1 and net_d(fake) = 0 to reach the mean loss
     return loss_d, fakes, real_preds, fake_preds
 
 
-def compute_loss_g_v2(net_g, net_d, z, labels, gen_labels, loss_func_g):
+def compute_loss_g_v2(net_g, net_d, z, labels, gen_labels, loss_func_g, device="cuda:0"):
     r"""
     General implementation to compute generator loss.
     """
 
     fakes = net_g(z, gen_labels)
     fake_preds = net_d(fakes, gen_labels).view(-1)
-    loss_g = loss_func_g(fake_preds)  # should predict all 1s to get the min loss value and fool the net_d
+    loss_g = loss_func_g(fake_preds, device)  # should predict all 1s to get the min loss value and fool the net_d
 
     return loss_g, fakes, fake_preds
 
@@ -558,7 +558,7 @@ class CGANTrainer(Trainer):
         )
         self.num_classes = num_classes
 
-    def _train_step_g(self, z, labels, gen_labels):
+    def _train_step_g(self, z, labels, gen_labels, device="cuda:0"):
         loss_g = hinge_loss_g if self.loss == "hinge" else mse_loss_g
         return train_step(
             self.net_g,
@@ -571,10 +571,11 @@ class CGANTrainer(Trainer):
                 labels,
                 gen_labels,
                 loss_g,
+                device,
             )[0],
         )
 
-    def _train_step_d(self, reals, z, labels, gen_labels):
+    def _train_step_d(self, reals, z, labels, gen_labels, device="cuda:0"):
         r"""
         Performs a discriminator training step.
         """
@@ -591,6 +592,7 @@ class CGANTrainer(Trainer):
                 labels,
                 gen_labels,
                 loss_d,
+                device,
             )[0],
         )
 
@@ -614,9 +616,9 @@ class CGANTrainer(Trainer):
                 # Training step
                 reals, z, gen_labels = prepare_data_for_gan_v2(
                     data, self.nz, self.num_classes, self.device)
-                loss_d = self._train_step_d(reals, z, labels, gen_labels)
+                loss_d = self._train_step_d(reals, z, labels, gen_labels, self.device)
                 if self.step % repeat_d == 0:
-                    loss_g = self._train_step_g(z, labels, gen_labels)
+                    loss_g = self._train_step_g(z, labels, gen_labels, self.device)
 
                 pbar.set_description(
                     f"L(G):{loss_g.item():.2f}|L(D):{loss_d.item():.2f}|{self.step}/{max_steps}"
