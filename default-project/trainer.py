@@ -78,6 +78,9 @@ def hinge_loss_d(real_preds, fake_preds, *args):
 
 
 def mse_loss_g(fake_preds, device="cuda:0"):
+    """
+    fake_preds: predictions from the discriminator with generated samples
+    """
     batch_size = fake_preds.shape[0]
     MSE_loss = nn.MSELoss()
     y_real_ = torch.ones(batch_size, 1, device=device)
@@ -85,6 +88,10 @@ def mse_loss_g(fake_preds, device="cuda:0"):
     return G_loss
 
 def mse_loss_d(real_preds, fake_preds, device="cuda:0"):
+    """
+    real_preds: predictions from the discriminator with real samples
+    fake_preds: predictions from the discriminator with generated samples
+    """
     batch_size = fake_preds.shape[0]
     MSE_loss = nn.MSELoss()
     y_real_ = torch.ones(batch_size, 1, device=device)
