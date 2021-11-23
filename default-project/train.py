@@ -108,7 +108,7 @@ def parse_args():
         "--model",
         type=str,
         default="default",
-        help="default|cgan",
+        help="default|cgan|lscgan",
     )
     return parser.parse_args()
 
@@ -149,7 +149,7 @@ def train(args):
     nz, lr, betas, eval_size, num_workers = (128, 2e-4, (0.0, 0.9), 1000, 4)
 
     # Configure models
-    if args.model == "cgan":
+    if args.model == "cgan" or args.model == "lscgan":
         net_g = CGANGenerator(nz, (3, args.im_size, args.im_size), num_classes = num_classes)
         net_d = CGANDiscriminator((3, args.im_size, args.im_size), num_classes = num_classes)
     elif args.im_size == 32:
@@ -177,7 +177,7 @@ def train(args):
     train_dataloader, eval_dataloader, _, _ = util.get_dataloaders(
         args.data_dir, args.im_size, args.batch_size, eval_size, num_workers, dataset=args.dataset
     )
-
+    # Configure trainer
     if args.model == "cgan":
         trainer = CGANTrainer(
             net_g,
@@ -194,7 +194,23 @@ def train(args):
             ckpt_dir,
             torch.device(args.device),
         )
-    # Configure trainer
+    elif args.model == "lscgan":
+        trainer = CGANTrainer(
+            net_g,
+            net_d,
+            opt_g,
+            opt_d,
+            sch_g,
+            sch_d,
+            train_dataloader,
+            eval_dataloader,
+            nz,
+            num_classes,
+            log_dir,
+            ckpt_dir,
+            torch.device(args.device),
+            loss="mse",
+        )
     else:
         trainer = Trainer(
             net_g,

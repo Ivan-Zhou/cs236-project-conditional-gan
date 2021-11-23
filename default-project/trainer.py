@@ -77,6 +77,22 @@ def hinge_loss_d(real_preds, fake_preds):
     return F.relu(1.0 - real_preds).mean() + F.relu(1.0 + fake_preds).mean()
 
 
+def mse_loss_g(fake_preds):
+    batch_size = fake_preds.shape[0]
+    MSE_loss = nn.MSELoss()
+    y_real_ = torch.ones(batch_size, 1)
+    G_loss = MSE_loss(fake_preds, y_real_)
+    return G_loss
+
+def mse_loss_d(real_preds, fake_preds):
+    batch_size = fake_preds.shape[0]
+    MSE_loss = nn.MSELoss()
+    y_real_, y_fake_ = torch.ones(batch_size, 1), torch.zeros(batch_size, 1)
+    D_real_loss = MSE_loss(D_real, y_real_)
+    D_fake_loss = MSE_loss(D_fake, y_fake_)
+    D_loss = D_real_loss + D_fake_loss
+    return D_loss
+
 def compute_loss_g(net_g, net_d, z, loss_func_g):
     r"""
     General implementation to compute generator loss.
@@ -230,6 +246,7 @@ class Trainer:
         log_dir,
         ckpt_dir,
         device,
+        loss="hinge",
     ):
         # Setup models, dataloader, optimizers
         self.net_g = net_g.to(device)
@@ -250,6 +267,10 @@ class Trainer:
         self.fixed_z = torch.randn((36, nz), device=device)
         self.logger = tbx.SummaryWriter(log_dir)
         self.ckpt_dir = ckpt_dir
+
+        # Loss
+        assert loss in ["hinge", "mse"]
+        self.loss = loss
 
     def _state_dict(self):
         return {
@@ -517,6 +538,7 @@ class CGANTrainer(Trainer):
         log_dir,
         ckpt_dir,
         device,
+        loss="hinge",
     ):
         super().__init__(
             net_g,
@@ -531,10 +553,12 @@ class CGANTrainer(Trainer):
             log_dir,
             ckpt_dir,
             device,
+            loss,
         )
         self.num_classes = num_classes
 
     def _train_step_g(self, z, labels, gen_labels):
+        loss_g = hinge_loss_g if self.loss == "hinge" else mse_loss_g
         return train_step(
             self.net_g,
             self.opt_g,
@@ -545,7 +569,7 @@ class CGANTrainer(Trainer):
                 z,
                 labels,
                 gen_labels,
-                hinge_loss_g,
+                loss_g,
             )[0],
         )
 
@@ -553,7 +577,7 @@ class CGANTrainer(Trainer):
         r"""
         Performs a discriminator training step.
         """
-
+        loss_d = hinge_loss_d if self.loss == "hinge" else mse_loss_d
         return train_step(
             self.net_d,
             self.opt_d,
@@ -565,7 +589,7 @@ class CGANTrainer(Trainer):
                 z,
                 labels,
                 gen_labels,
-                hinge_loss_d,
+                loss_d,
             )[0],
         )
 

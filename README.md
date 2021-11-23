@@ -21,6 +21,9 @@ For example:
 
 # Train CGAN on Fashion-MNIST
 ./run.sh fashion-mnist cgan
+
+# Train LSGAN on MNIST
+./run.sh mnist lscgan
 ```
 
 ## Evaluation
