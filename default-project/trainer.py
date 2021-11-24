@@ -434,7 +434,7 @@ def compute_loss_g_v2(net_g, net_d, z, labels, gen_labels, loss_func_g, device="
     return loss_g, fakes, fake_preds
 
 
-def evaluate_v2(net_g, net_d, dataloader, nz, num_classes, device, samples_z=None, samples_save_path=None):
+def evaluate_v2(net_g, net_d, dataloader, nz, num_classes, device, samples_z=None, samples_save_path=None, loss="hinge"):
     r"""
     Evaluates model and logs metrics.
     Attributes:
@@ -446,7 +446,7 @@ def evaluate_v2(net_g, net_d, dataloader, nz, num_classes, device, samples_z=Non
         device (Device): Torch device to perform evaluation on.
         samples_z (Tensor): Noise tensor to generate samples.
     """
-
+    assert loss in ["hinge", "mse"]
     net_g.to(device).eval()
     net_d.to(device).eval()
 
@@ -474,6 +474,7 @@ def evaluate_v2(net_g, net_d, dataloader, nz, num_classes, device, samples_z=Non
             # Compute losses and save intermediate outputs
             reals, z, gen_labels = prepare_data_for_gan_v2(
                 data, nz, num_classes, device)
+            loss_d_func = hinge_loss_d if loss == "hinge" else mse_loss_d
             loss_d, fakes, real_pred, fake_pred = compute_loss_d_v2(
                 net_g,
                 net_d,
@@ -481,15 +482,18 @@ def evaluate_v2(net_g, net_d, dataloader, nz, num_classes, device, samples_z=Non
                 z,
                 labels,
                 gen_labels,
-                hinge_loss_d,
+                loss_d_func,
+                device,
             )
+            loss_g_func = hinge_loss_g if loss == "hinge" else mse_loss_g
             loss_g, _, _ = compute_loss_g_v2(
                 net_g,
                 net_d,
                 z,
                 labels,
                 gen_labels,
-                hinge_loss_g,
+                loss_g_func,
+                device,
             )
 
             # Update metrics

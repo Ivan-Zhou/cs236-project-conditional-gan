@@ -99,7 +99,7 @@ def eval(args):
     num_classes = util.get_num_classes_by_dataset(args.dataset)
 
     # Configure models
-    if args.model == "cgan":
+    if args.model == "cgan" or args.model == "lscgan":
         net_g = CGANGenerator(nz, (3, args.im_size, args.im_size), num_classes = num_classes)
         net_d = CGANDiscriminator((3, args.im_size, args.im_size), num_classes = num_classes)
     elif args.im_size == 32:
@@ -128,7 +128,9 @@ def eval(args):
     samples_save_path = os.path.join(args.out_dir, "samples.png")
     samples_z = Variable(FloatTensor(np.random.normal(0, 1, (36, nz))))
     if args.model == "cgan":
-        metrics, _ = evaluate_v2(net_g, net_d, eval_dataloader, nz, num_classes, args.device, samples_z, samples_save_path)
+        metrics, _ = evaluate_v2(net_g, net_d, eval_dataloader, nz, num_classes, args.device, samples_z, samples_save_path, "hinge")
+    elif args.model == "lscgan":
+        metrics, _ = evaluate_v2(net_g, net_d, eval_dataloader, nz, num_classes, args.device, samples_z, samples_save_path, "mse")
     elif args.model == "default":
         metrics, _ = evaluate(net_g, net_d, eval_dataloader, nz, args.device, samples_z, samples_save_path)
     else:
