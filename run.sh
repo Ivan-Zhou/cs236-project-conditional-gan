@@ -14,6 +14,10 @@ if [ $DATASET == "stanford_dogs_top_10" ]; then
     DATA_DIR="./data/stanford_dogs_top_10"
 fi
 
+if [ $DATASET == "bitmoji-4k" ]; then
+    DATA_DIR="./data/bitmoji-4k"
+fi
+
 JOB_NAME=$MODEL"_"$DATASET
 
 echo "Dataset: "$DATASET
