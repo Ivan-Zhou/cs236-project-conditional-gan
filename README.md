@@ -6,6 +6,10 @@ bash build.sh # build docker
 bash launch.sh # launch docker
 ```
 
+### Prepare Datasets
+- `bitmoji-4k` dataset from Kaggle can be downloaded [here](https://drive.google.com/file/d/15XYVYe7wbc3yl1MaAMiwyFFpYvdH41g8/view?usp=sharing).
+
+### Launch Training
 To launch a training job, please pass two parameters:
 - `DATASET`: The name of the Dataset for training (`stanford_dog` or `mnist`)
 - `MODEL`: The type of the model for training (`default` or `cgan`)
@@ -21,6 +25,9 @@ For example:
 
 # Train CGAN on Fashion-MNIST
 ./run.sh fashion-mnist cgan
+
+# Train CGAN on bitmoji-4k
+./run.sh bitmoji-4k cgan
 ```
 
 ## Evaluation

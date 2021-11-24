@@ -49,7 +49,7 @@ def get_dataloaders_from_local(data_dir, imsize, batch_size, eval_size, num_work
 
 
 def get_dataloaders(data_dir, imsize, batch_size, eval_size, num_workers=1, dataset="mnist"):
-    if dataset in ["stanford_dog", "stanford_dogs_top_10"]:  # dataset from local directory
+    if dataset in ["stanford_dog", "stanford_dogs_top_10", "bitmoji-4k"]:  # dataset from local directory
         assert os.path.exists(data_dir), f"The directory {data_dir} does not exist!"
         return get_dataloaders_from_local(data_dir, imsize, batch_size, eval_size, num_workers=num_workers)
     else:
@@ -102,6 +102,8 @@ def get_num_classes_by_dataset(dataset):
         return 10
     elif dataset == "stanford_dogs_top_10":
         return 10
+    elif dataset == "bitmoji-4k":
+        return 2
     else:
         raise ValueError(f"No num_classes defined for the dataset {dataset}")
 
