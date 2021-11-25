@@ -2,3 +2,5 @@ default-project/data/*
 default-project/out/*
 data/*
 *.pyc
+cycle_gan/datasets/*
+*~
