@@ -27,7 +27,7 @@ def parse_args():
         "--dataset",
         type=str,
         default="mnist",
-        help="mnist|stanford_dog",
+        help="mnist|stanford_dog|stanford_dogs_top_10|fashion-mnist|bitmoji-4k",
     )
     parser.add_argument(
         "--out_dir",
@@ -78,7 +78,7 @@ def parse_args():
         help="Minibatch size used during training.",
     )
     parser.add_argument(
-        "--max_steps", type=int, default=150000, help="Number of steps to train for."
+        "--max_steps", type=int, default=100000, help="Number of steps to train for."
     )
     parser.add_argument(
         "--repeat_d",
@@ -89,7 +89,7 @@ def parse_args():
     parser.add_argument(
         "--eval_every",
         type=int,
-        default=500,
+        default=1000,
         help="Number of steps between model evaluation.",
     )
     parser.add_argument(

@@ -4,3 +4,4 @@ data/*
 *.pyc
 cycle_gan/datasets/*
 *~
+*.ipynb
