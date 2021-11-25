@@ -25,7 +25,7 @@ im_size = 32
 batch_size = 64
 #num_classes = 120
 num_classes = 10
-ckpt_path = "./out/debug_cgan_mnist/ckpt/15000.pth"
+ckpt_path = "./out/debug_cgan_mnist/ckpt/245000.pth"
 num_channels=3
 net_g = CGANGenerator(nz, (num_channels, im_size, im_size), num_classes)
 net_d = CGANDiscriminator((num_channels, im_size, im_size), num_classes)
@@ -53,7 +53,7 @@ pprint.pprint(metrics)
 samples_z = torch.randn((36, nz), device=device)
 #gen_labels = Variable(torch.LongTensor(np.arange(samples_z.shape[0]))).to(device)
 gen_labels = Variable(torch.LongTensor(np.ones(samples_z.shape[0]))).to(device)
-gen_labels = Variable(torch.LongTensor(np.ones(samples_z.shape[0]))*6).to(device)
+gen_labels = Variable(torch.LongTensor(np.ones(samples_z.shape[0]))*3).to(device)
 
 gen_labels
 
