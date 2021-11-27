@@ -1,7 +1,7 @@
 
 ## Prepare the dataset
 ### Small emoji dataset from Kaggle
-- [emoji data](https://www.kaggle.com/mostafamozafari/bitmoji-faces/version/1): 4k emoji dataset
+- [emoji data 4k](https://www.kaggle.com/mostafamozafari/bitmoji-faces/version/1): 4k emoji dataset
 - [celebA](https://drive.google.com/file/d/1t-qDQQqJdX8B9ZcyO6YPqNVy8GTmILg9/view?usp=sharing): 203K celebrity face dataset
 ```
 cd cycle_gan
@@ -12,7 +12,7 @@ mkdir -p face2emoji_small/testA    # put emoji images, no duplicate from trainB
 ```
 
 ### Large emoji dataset generated from Bitmoji API
-- [emoji data](): 900k emoji dataset with properties in a csv file
+- [emoji data 900k](https://drive.google.com/file/d/1p3Y9kGKnPdo-Fu5CWFcsDWODSuLRPMrU/view?usp=sharing): 900k emoji dataset with properties in a csv file
 - [celebA](https://drive.google.com/file/d/1t-qDQQqJdX8B9ZcyO6YPqNVy8GTmILg9/view?usp=sharing): 203K celebrity face dataset
 
 ```
