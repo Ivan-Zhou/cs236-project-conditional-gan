@@ -5,3 +5,5 @@ data/*
 cycle_gan/datasets/*
 *~
 *.ipynb
+cycle_gan/face2emoji_*/
+cycle_gan/wandb/*
