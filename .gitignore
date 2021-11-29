@@ -7,3 +7,9 @@ cycle_gan/datasets/*
 *.ipynb
 cycle_gan/face2emoji_*/
 cycle_gan/wandb/*
+ccycle_gan/face2emoji_*/
+ccycle_gan/wandb/*
+ccycle_gan/util/celeba_attributes.txt
+ccycle_gan/util/celeba_attributes.csv
+ccycle_gan/util/emoji_attributes.csv
+ccycle_gan/checkpoints/*
