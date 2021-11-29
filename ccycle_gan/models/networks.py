@@ -116,7 +116,7 @@ def init_net(net, init_type='normal', init_gain=0.02, gpu_ids=[]):
     return net
 
 
-def define_G(input_nc, output_nc, ngf, netG, norm='batch', use_dropout=False, init_type='normal', init_gain=0.02, gpu_ids=[]):
+def define_G(input_nc, output_nc, ngf, netG, norm='batch', use_dropout=False, init_type='normal', init_gain=0.02, gpu_ids=[], num_classes=2):
     """Create a generator
 
     Parameters:
@@ -147,7 +147,7 @@ def define_G(input_nc, output_nc, ngf, netG, norm='batch', use_dropout=False, in
     norm_layer = get_norm_layer(norm_type=norm)
 
     if netG == 'resnet_9blocks':
-        net = ResnetGenerator(input_nc, output_nc, ngf, norm_layer=norm_layer, use_dropout=use_dropout, n_blocks=9)
+        net = ResnetGenerator(input_nc, output_nc, ngf, norm_layer=norm_layer, use_dropout=use_dropout, n_blocks=9, num_classes=num_classes)
     elif netG == 'resnet_6blocks':
         net = ResnetGenerator(input_nc, output_nc, ngf, norm_layer=norm_layer, use_dropout=use_dropout, n_blocks=6)
     elif netG == 'unet_128':
@@ -159,7 +159,7 @@ def define_G(input_nc, output_nc, ngf, netG, norm='batch', use_dropout=False, in
     return init_net(net, init_type, init_gain, gpu_ids)
 
 
-def define_D(input_nc, ndf, netD, n_layers_D=3, norm='batch', init_type='normal', init_gain=0.02, gpu_ids=[]):
+def define_D(input_nc, ndf, netD, n_layers_D=3, norm='batch', init_type='normal', init_gain=0.02, gpu_ids=[], num_classes=2):
     """Create a discriminator
 
     Parameters:
@@ -193,7 +193,7 @@ def define_D(input_nc, ndf, netD, n_layers_D=3, norm='batch', init_type='normal'
     norm_layer = get_norm_layer(norm_type=norm)
 
     if netD == 'basic':  # default PatchGAN classifier
-        net = NLayerDiscriminator(input_nc, ndf, n_layers=3, norm_layer=norm_layer)
+        net = NLayerDiscriminator(input_nc, ndf, n_layers=3, norm_layer=norm_layer, num_classes=num_classes)
     elif netD == 'n_layers':  # more options
         net = NLayerDiscriminator(input_nc, ndf, n_layers_D, norm_layer=norm_layer)
     elif netD == 'pixel':     # classify if each pixel is real or fake
@@ -202,6 +202,13 @@ def define_D(input_nc, ndf, netD, n_layers_D=3, norm='batch', init_type='normal'
         raise NotImplementedError('Discriminator model name [%s] is not recognized' % netD)
     return init_net(net, init_type, init_gain, gpu_ids)
 
+
+def linear_block(in_feat, out_feat, normalize=True):
+    layers = [nn.Linear(in_feat, out_feat)]
+    if normalize:
+        layers.append(nn.BatchNorm1d(out_feat, 0.8))
+    layers.append(nn.LeakyReLU(0.2, inplace=True))
+    return layers
 
 ##############################################################################
 # Classes
@@ -318,7 +325,7 @@ class ResnetGenerator(nn.Module):
     We adapt Torch code and idea from Justin Johnson's neural style transfer project(https://github.com/jcjohnson/fast-neural-style)
     """
 
-    def __init__(self, input_nc, output_nc, ngf=64, norm_layer=nn.BatchNorm2d, use_dropout=False, n_blocks=6, padding_type='reflect'):
+    def __init__(self, input_nc, output_nc, ngf=64, norm_layer=nn.BatchNorm2d, use_dropout=False, n_blocks=6, padding_type='reflect', num_classes=2, image_size=256):
         """Construct a Resnet-based generator
 
         Parameters:
@@ -367,9 +374,23 @@ class ResnetGenerator(nn.Module):
         model += [nn.Tanh()]
 
         self.model = nn.Sequential(*model)
+        self.feature = nn.Sequential(
+            *linear_block(num_classes, 128, normalize=False),
+            *linear_block(128, 256),
+            *linear_block(256, 512),
+            nn.Linear(512, image_size * input_nc),
+            nn.Tanh()
+        )
 
-    def forward(self, input):
+    def forward(self, image, label):
         """Standard forward"""
+        label_feature = self.feature(label)
+        import pdb; pdb.set_trace()
+        label_feature = torch.reshape(
+            label_feature, 
+            (image.shape[0], image.shape[1], image.shape[2], 1)
+        )
+        input = torch.cat((image, label_feature), 3)
         return self.model(input)
 
 
@@ -538,7 +559,7 @@ class UnetSkipConnectionBlock(nn.Module):
 class NLayerDiscriminator(nn.Module):
     """Defines a PatchGAN discriminator"""
 
-    def __init__(self, input_nc, ndf=64, n_layers=3, norm_layer=nn.BatchNorm2d):
+    def __init__(self, input_nc, ndf=64, n_layers=3, norm_layer=nn.BatchNorm2d, num_classes=2, image_size=256):
         """Construct a PatchGAN discriminator
 
         Parameters:
@@ -577,7 +598,16 @@ class NLayerDiscriminator(nn.Module):
 
         sequence += [nn.Conv2d(ndf * nf_mult, 1, kernel_size=kw, stride=1, padding=padw)]  # output 1 channel prediction map
         self.model = nn.Sequential(*sequence)
+        self.feature = nn.Sequential(
+            *linear_block(num_classes, 128, normalize=False),
+            *linear_block(128, 256),
+            *linear_block(256, 512),
+            nn.Linear(512, image_size * input_nc),
+            nn.Tanh()
+        )
 
-    def forward(self, input):
+    def forward(self, image, label):
         """Standard forward."""
+        label_feature = self.feature(label)
+        input = torch.cat((image, label_feature), 1)
         return self.model(input)

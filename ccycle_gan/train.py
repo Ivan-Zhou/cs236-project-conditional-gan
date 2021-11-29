@@ -9,8 +9,8 @@ It then does standard network training. During the training, it also visualize/s
 The script supports continue/resume training. Use '--continue_train' to resume your previous training.
 
 Example:
-    Train a CycleGAN model:
-        python train.py --dataroot ./datasets/maps --name maps_cyclegan --model cycle_gan
+    Train a CCycleGAN model:
+        python train.py --dataroot ./datasets/maps --name maps_cyclegan --model ccycle_gan
     Train a pix2pix model:
         python train.py --dataroot ./datasets/facades --name facades_pix2pix --model pix2pix --direction BtoA
 
