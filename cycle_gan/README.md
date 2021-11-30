@@ -23,13 +23,24 @@ mkdir -p face2emoji_large/testA    # put celebA images, no duplicate from trainA
 mkdir -p face2emoji_large/testA    # put emoji images, no duplicate from trainB
 ```
 
-### Start training
+## Training and Evaluation
+### Setup
 ```
 cd cycle_gan
 docker run --gpus all --rm -v $PWD:/workspace -it nvcr.io/nvidia/pytorch:21.09-py3 /bin/bash
 pip install -r requirements.txt
+```
 
-DATASET="face2emoji_large" # or "face2emoji_small"
+### Start training
+```
+DATASET="face2emoji_20k" # Path and Name of the dataset, assuming it is in the root dir
 python train.py --dataroot ./$DATASET --name $DATASET --model cycle_gan --use_wandb
-python test.py --dataroot ./$DATASET --name $DATASET --model cycle_gan
+```
+
+### Evaluation
+During evaluation, we will generate example images as well as quantitative metrics. They will be saved into a folder of `results/DATASET_NAME/test_latest/`.
+
+```
+DATASET="face2emoji_20k" # Path and Name of the dataset, assuming it is in the root dir
+python eval.py --dataroot ./$DATASET --name $DATASET --model cycle_gan
 ```
