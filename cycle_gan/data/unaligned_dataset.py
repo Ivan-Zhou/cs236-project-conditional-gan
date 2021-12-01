@@ -79,8 +79,22 @@ class UnalignedDataset(BaseDataset):
         else:   # randomize the index for domain B to avoid fixed pairs.
             index_B = random.randint(0, self.B_size - 1)
         B_path = self.B_paths[index_B]
-        A_img = Image.open(A_path).convert('RGB')
-        B_img = Image.open(B_path).convert('RGB')
+        try:
+            A_img = Image.open(A_path).convert('RGB')
+            B_img = Image.open(B_path).convert('RGB')
+        except:
+            # in case some illegal image may fail....
+            index = index - 1
+            A_path = self.A_paths[index % self.A_size]
+            if self.opt.serial_batches:
+                index_B = index % self.B_size
+            else:
+                index_B = random.randint(0, self.B_size - 1)
+            B_path = self.B_paths[index_B]
+
+            A_img = Image.open(A_path).convert('RGB')
+            B_img = Image.open(B_path).convert('RGB')
+
         # apply image transformation
         A = self.transform_A(A_img)
         B = self.transform_B(B_img)
