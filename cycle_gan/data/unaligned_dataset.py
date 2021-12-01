@@ -41,13 +41,20 @@ class UnalignedDataset(BaseDataset):
         self.dir_A = os.path.join(opt.dataroot, opt.phase + 'A')  # create a path '/path/to/data/trainA'
         self.dir_B = os.path.join(opt.dataroot, opt.phase + 'B')  # create a path '/path/to/data/trainB'
 
-        #self.A_paths = sorted(make_dataset(self.dir_A, opt.max_dataset_size))   # load images from '/path/to/data/trainA'
-        #self.B_paths = sorted(make_dataset(self.dir_B, opt.max_dataset_size))    # load images from '/path/to/data/trainB'
-        self.A_paths = sorted(make_dataset_v2("/mnt/nvdl/usr/yudong/github/pytorch-CycleGAN-and-pix2pix/datasets/face2emoji/face_train.csv"))
-        self.B_paths = sorted(make_dataset_v2("/mnt/nvdl/usr/yudong/github/pytorch-CycleGAN-and-pix2pix/datasets/face2emoji/emoji_train.csv"))
-
+        #self.A_paths = sorted(make_dataset_v2("/mnt/nvdl/usr/yudong/github/pytorch-CycleGAN-and-pix2pix/datasets/face2emoji/face_train.csv"))
+        #self.B_paths = sorted(make_dataset_v2("/mnt/nvdl/usr/yudong/github/pytorch-CycleGAN-and-pix2pix/datasets/face2emoji/emoji_train.csv"))
         #self.A_paths = sorted(make_dataset_v2("./datasets/face2emoji/face_test.csv"))
         #self.B_paths = sorted(make_dataset_v2("./datasets/face2emoji/emoji_test.csv"))
+        if self.opt.A_csv is not None:
+            self.A_paths = sorted(make_dataset_v2(self.opt.A_csv))
+        else:
+            self.A_paths = sorted(make_dataset(self.dir_A, opt.max_dataset_size))   # load images from '/path/to/data/trainA'
+        
+        if self.opt.B_csv is not None:
+            self.B_paths = sorted(make_dataset_v2(self.opt.B_csv))
+        else:
+            self.B_paths = sorted(make_dataset(self.dir_B, opt.max_dataset_size))    # load images from '/path/to/data/trainB'
+        
         self.A_size = len(self.A_paths)  # get the size of dataset A
         self.B_size = len(self.B_paths)  # get the size of dataset B
         btoA = self.opt.direction == 'BtoA'
