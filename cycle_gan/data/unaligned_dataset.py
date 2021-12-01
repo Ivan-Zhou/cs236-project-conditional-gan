@@ -15,7 +15,8 @@ def make_dataset_v2(csv_path):
                 break
             i += 1
             line = line.strip()
-            path = line.replace("/mnt/nvdl/usr/yudong/github/pytorch-CycleGAN-and-pix2pix", ".")
+            #path = line.replace("/mnt/nvdl/usr/yudong/github/pytorch-CycleGAN-and-pix2pix", ".")
+            path = line
             paths.append(path)
     return paths
 
@@ -40,10 +41,10 @@ class UnalignedDataset(BaseDataset):
         self.dir_A = os.path.join(opt.dataroot, opt.phase + 'A')  # create a path '/path/to/data/trainA'
         self.dir_B = os.path.join(opt.dataroot, opt.phase + 'B')  # create a path '/path/to/data/trainB'
 
-        self.A_paths = sorted(make_dataset(self.dir_A, opt.max_dataset_size))   # load images from '/path/to/data/trainA'
-        self.B_paths = sorted(make_dataset(self.dir_B, opt.max_dataset_size))    # load images from '/path/to/data/trainB'
-        #self.A_paths = sorted(make_dataset_v2("./datasets/face2emoji/face_train.csv"))
-        #self.B_paths = sorted(make_dataset_v2("./datasets/face2emoji/emoji_train.csv"))
+        #self.A_paths = sorted(make_dataset(self.dir_A, opt.max_dataset_size))   # load images from '/path/to/data/trainA'
+        #self.B_paths = sorted(make_dataset(self.dir_B, opt.max_dataset_size))    # load images from '/path/to/data/trainB'
+        self.A_paths = sorted(make_dataset_v2("/mnt/nvdl/usr/yudong/github/pytorch-CycleGAN-and-pix2pix/datasets/face2emoji/face_train.csv"))
+        self.B_paths = sorted(make_dataset_v2("/mnt/nvdl/usr/yudong/github/pytorch-CycleGAN-and-pix2pix/datasets/face2emoji/emoji_train.csv"))
 
         #self.A_paths = sorted(make_dataset_v2("./datasets/face2emoji/face_test.csv"))
         #self.B_paths = sorted(make_dataset_v2("./datasets/face2emoji/emoji_test.csv"))
