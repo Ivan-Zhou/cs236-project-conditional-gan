@@ -4,14 +4,12 @@ from data.image_folder import make_dataset
 from PIL import Image
 import random
 
-TRAIN_TOTAL=5000 
-
-def make_dataset_v2(csv_path):
+def make_dataset_v2(csv_path, max_dataset_size):
     paths = []
     i = 0
     with open(csv_path, "r") as f:
         for line in f.readlines():
-            if i == TRAIN_TOTAL:
+            if i == max_dataset_size:
                 break
             i += 1
             line = line.strip()
@@ -46,12 +44,12 @@ class UnalignedDataset(BaseDataset):
         #self.A_paths = sorted(make_dataset_v2("./datasets/face2emoji/face_test.csv"))
         #self.B_paths = sorted(make_dataset_v2("./datasets/face2emoji/emoji_test.csv"))
         if self.opt.A_csv is not None:
-            self.A_paths = sorted(make_dataset_v2(self.opt.A_csv))
+            self.A_paths = sorted(make_dataset_v2(self.opt.A_csv, opt.max_dataset_size))
         else:
             self.A_paths = sorted(make_dataset(self.dir_A, opt.max_dataset_size))   # load images from '/path/to/data/trainA'
         
         if self.opt.B_csv is not None:
-            self.B_paths = sorted(make_dataset_v2(self.opt.B_csv))
+            self.B_paths = sorted(make_dataset_v2(self.opt.B_csv, opt.max_dataset_size))
         else:
             self.B_paths = sorted(make_dataset(self.dir_B, opt.max_dataset_size))    # load images from '/path/to/data/trainB'
         
