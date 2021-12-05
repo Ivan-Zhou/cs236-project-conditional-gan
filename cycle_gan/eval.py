@@ -12,7 +12,6 @@ import torch
 import json
 from pathlib import Path
 
-
 def visualize(dataset, model, opt, n_row=8, n_col=4, im_size=256):
     num_test = n_row * n_col
     output = np.zeros((n_row * im_size, n_col * 2 * im_size, 3), np.uint8)
@@ -112,4 +111,4 @@ if __name__ == "__main__":
     Path(output_dir).mkdir(parents=True, exist_ok=True)
 
     visualize(dataset, model, opt)
-    compute_metrics(dataset, model, opt)
+    compute_metrics(dataset, model, opt, num_test=2000)
